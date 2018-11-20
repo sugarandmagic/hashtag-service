@@ -80,7 +80,8 @@ const getHashtags = async ctx => {
   }))
   console.log('yayaaaa!')
   console.log(all);
-  ctx.body = res
+  ctx.body = res;
+  ctx.status = 200;
 };
 
 const getHashtagByEventId = async (ctx) => {
@@ -95,6 +96,7 @@ const getHashtagByEventId = async (ctx) => {
       hashtag: one.hashtag
     }
   };
+  ctx.status = 200;
 };
 
 
@@ -107,6 +109,9 @@ const init = async () => {
     console.log("Connected to Mongo");
   });
   await syncToMongo(db);
+  router.get('/', (ctx) => {
+    ctx.status = 200
+  });
   router.get("/hashtags", getHashtags);
   router.get("/hashtag/:eventId", getHashtagByEventId)
   const app = new Koa();
