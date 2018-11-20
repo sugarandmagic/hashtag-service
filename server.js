@@ -99,7 +99,6 @@ const getHashtagByEventId = async (ctx) => {
   ctx.status = 200;
 };
 
-
 const init = async () => {
   console.info("Server has started. Initializing routes.");
   await connectToMongo();
