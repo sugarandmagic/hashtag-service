@@ -6,12 +6,13 @@ const mongoose = require("mongoose");
 var router = new Router();
 
 var hashtagSchema = new mongoose.Schema({
+  _id: String,
   eventId: String,
   title: String,
   hashtag: String
 });
 
-var Hashtag = mongoose.model('Hashtag', hashtagSchema);
+var Hashtag = mongoose.model("Hashtag", hashtagSchema);
 
 const connectionString =
   "mongodb://hashtag-service-user:P0tato@ds247223.mlab.com:47223/hashtags";
@@ -55,7 +56,10 @@ const generateHashtags = async fixtures => {
 
 const connectToMongo = async () => {
   try {
-    mongoose.connect(connectionString, { useNewUrlParser: true });
+    mongoose.connect(
+      connectionString,
+      { useNewUrlParser: true }
+    );
   } catch (err) {
     console.error(err.message, "Oh Snap!");
   }
@@ -65,10 +69,21 @@ const syncToMongo = async () => {
   const fixtures = await getFixtures();
   const hashtags = await generateHashtags(fixtures);
   hashtags.forEach(item => {
-    const Item = new Hashtag({eventId: item.eventId, title: item.title, hashtag: item.hashtag});
-    Item.save();
+    const Item = new Hashtag({
+      _id: item.eventId,
+      eventId: item.eventId,
+      title: item.title,
+      hashtag: item.hashtag
+    });
+    var upsertData = Item.toObject();
+    Hashtag.update({ _id: Item.eventId }, upsertData, { upsert: true }, err => {
+      if (err) {
+        console.err(err);
+      }
+      console.log(`upserted eventId ${item.eventId}!`);
+    });
   });
-}
+};
 
 const getHashtags = async ctx => {
   const all = await Hashtag.find({});
@@ -77,19 +92,19 @@ const getHashtags = async ctx => {
       title: item.title,
       hashtag: item.hashtag
     }
-  }))
-  console.log('yayaaaa!')
+  }));
+  console.log("yayaaaa!");
   console.log(all);
   ctx.body = res;
   ctx.status = 200;
 };
 
-const getHashtagByEventId = async (ctx) => {
-  const eventId = ctx.params.eventId
+const getHashtagByEventId = async ctx => {
+  const eventId = ctx.params.eventId;
   const one = await Hashtag.findOne({ eventId: eventId });
-  
+
   // fetch from mongo single item by ID
-  console.log('yay!')
+  console.log("yay!");
   ctx.body = {
     [eventId]: {
       title: one.title,
@@ -99,8 +114,7 @@ const getHashtagByEventId = async (ctx) => {
   ctx.status = 200;
 };
 
-const init = async () => {
-  console.info("Server has started. Initializing routes.");
+const syncFixtures = async () => {
   await connectToMongo();
   var db = mongoose.connection;
   db.on("error", console.error.bind(console, "connection error:"));
@@ -108,11 +122,16 @@ const init = async () => {
     console.log("Connected to Mongo");
   });
   await syncToMongo(db);
-  router.get('/', (ctx) => {
-    ctx.status = 200
+}
+
+const init = async () => {
+  console.info("Server has started. Initializing routes.");
+  await syncFixtures();
+  router.get("/", ctx => {
+    ctx.status = 200;
   });
   router.get("/hashtags", getHashtags);
-  router.get("/hashtag/:eventId", getHashtagByEventId)
+  router.get("/hashtag/:eventId", getHashtagByEventId);
   const app = new Koa();
   app.use(router.routes());
   const port_number = process.env.PORT || 3000;
@@ -120,4 +139,4 @@ const init = async () => {
   app.listen();
 };
 
-module.exports = { init }
+module.exports = { init, syncFixtures };
