@@ -9,7 +9,8 @@ var hashtagSchema = new mongoose.Schema({
   _id: String,
   eventId: String,
   title: String,
-  hashtag: String
+  hashtag: String,
+  now: Boolean
 });
 
 var Hashtag = mongoose.model("Hashtag", hashtagSchema);
@@ -31,7 +32,8 @@ const getFixtures = async () => {
   }
   const fixtures = items.map(item => ({
     eventId: item.EventId,
-    title: item.Title
+    title: item.Title,
+    start: item.Start
   }));
   return fixtures;
 };
@@ -49,7 +51,8 @@ const generateHashtags = async fixtures => {
   const newItems = fixtures.map(fixture => ({
     eventId: fixture.eventId,
     title: fixture.title,
-    hashtag: generateHashtag(fixture)
+    hashtag: generateHashtag(fixture),
+    start: fixture.start
   }));
   return newItems;
 };
@@ -65,6 +68,20 @@ const connectToMongo = async () => {
   }
 };
 
+const checkIfEventIsLive = (startTime) => {
+  const startMs = new Date(startTime).getTime();
+  const nowMs = new Date().getTime();
+  const MS_PER_MINUTE = 60000;
+  const thirtyMinsBeforeStart = startMs - (MS_PER_MINUTE * 30);
+  const twoHoursAfterStart = startMs + (MS_PER_MINUTE * 120);
+
+  if ((nowMs > thirtyMinsBeforeStart) && (nowMs < twoHoursAfterStart) ) {
+    return true;
+  } else {
+    return false
+  }
+}
+
 const syncToMongo = async () => {
   const fixtures = await getFixtures();
   const hashtags = await generateHashtags(fixtures);
@@ -73,7 +90,8 @@ const syncToMongo = async () => {
       _id: item.eventId,
       eventId: item.eventId,
       title: item.title,
-      hashtag: item.hashtag
+      hashtag: item.hashtag,
+      now: checkIfEventIsLive(item.start)
     });
     var upsertData = Item.toObject();
     Hashtag.update({ _id: Item.eventId }, upsertData, { upsert: true }, err => {
@@ -93,8 +111,6 @@ const getHashtags = async ctx => {
       hashtag: item.hashtag
     }
   }));
-  console.log("yayaaaa!");
-  console.log(all);
   ctx.body = res;
   ctx.status = 200;
 };
@@ -102,9 +118,6 @@ const getHashtags = async ctx => {
 const getHashtagByEventId = async ctx => {
   const eventId = ctx.params.eventId;
   const one = await Hashtag.findOne({ eventId: eventId });
-
-  // fetch from mongo single item by ID
-  console.log("yay!");
   ctx.body = {
     [eventId]: {
       title: one.title,
@@ -137,6 +150,7 @@ const init = async () => {
   const port_number = process.env.PORT || 3000;
   app.listen(port_number);
   app.listen();
+  console.info(`Listening on ${port_number}`);
 };
 
 module.exports = { init, syncFixtures };
