@@ -121,7 +121,8 @@ const getHashtagByEventId = async ctx => {
   ctx.body = {
     [eventId]: {
       title: one.title,
-      hashtag: one.hashtag
+      hashtag: one.hashtag,
+      now: one.now,
     }
   };
   ctx.status = 200;
