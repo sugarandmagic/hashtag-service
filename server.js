@@ -116,7 +116,9 @@ const init = async () => {
   router.get("/hashtag/:eventId", getHashtagByEventId)
   const app = new Koa();
   app.use(router.routes());
-  app.listen(3000);
+  const port_number = server.listen(process.env.PORT || 3000);
+  app.listen(port_number);
+  app.listen();
 };
 
 module.exports = { init }
