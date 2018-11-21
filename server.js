@@ -20,8 +20,9 @@ const connectionString = process.env.CONNECTION_STRING;
 const getFixtures = async () => {
   const endpoint = process.env.ENDPOINT;
   console.log('>>>>>>', endpoint)
-  const today = new Date().toISOString().split("T")[0];
-  const target = `${endpoint}v1/EPG?date=${today}&country=de&languageCode=en&filters=Sport%3A289u5typ3vp4ifwh5thalohmq`;
+  // const today = new Date().toISOString().split("T")[0];
+  // const target = `${endpoint}v1/EPG?date=${today}&country=de&languageCode=en&filters=Sport%3A289u5typ3vp4ifwh5thalohmq`;
+  const target = `${endpoint}v1/EPG?date=2018-11-20&country=de&languageCode=en&filters=Sport%3A289u5typ3vp4ifwh5thalohmq`;
   console.log('>>>', target);
   const res = await axios.get(target);
   const body = res.data;
@@ -49,13 +50,18 @@ const generateHashtag = fixture => {
 
 const generateHashtags = async fixtures => {
   console.log('>>>>>', fixtures)
-  const newItems = fixtures.map(fixture => ({
-    eventId: fixture.eventId,
-    title: fixture.title,
-    hashtag: generateHashtag(fixture),
-    start: fixture.start
-  }));
-  return newItems;
+  if (fixtures) {
+    const newItems = fixtures.map(fixture => ({
+      eventId: fixture.eventId,
+      title: fixture.title,
+      hashtag: generateHashtag(fixture),
+      start: fixture.start
+    }));
+    return newItems;
+  }
+  else {
+    return {};
+  }
 };
 
 const connectToMongo = async () => {
