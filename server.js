@@ -15,11 +15,10 @@ var hashtagSchema = new mongoose.Schema({
 
 var Hashtag = mongoose.model("Hashtag", hashtagSchema);
 
-const connectionString =
-  "mongodb://hashtag-service-user:P0tato@ds247223.mlab.com:47223/hashtags";
+const connectionString = process.env.CONNECTION_STRING;
 
 const getFixtures = async () => {
-  const endpoint = "https://cdn.dazn.com/misl/eu/";
+  const endpoint = process.env.ENDPOINT;
   const today = new Date().toISOString().split("T")[0];
   const target = `${endpoint}v1/EPG?date=${today}&country=de&languageCode=en&filters=Sport%3A289u5typ3vp4ifwh5thalohmq`;
 
@@ -108,7 +107,8 @@ const getHashtags = async ctx => {
   const res = all.map(item => ({
     [item.eventId]: {
       title: item.title,
-      hashtag: item.hashtag
+      hashtag: item.hashtag,
+      now: checkIfEventIsLive(item.start)
     }
   }));
   ctx.body = res;
