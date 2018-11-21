@@ -48,6 +48,7 @@ const generateHashtag = fixture => {
 };
 
 const generateHashtags = async fixtures => {
+  console.log('>>>>>', fixtures)
   const newItems = fixtures.map(fixture => ({
     eventId: fixture.eventId,
     title: fixture.title,
