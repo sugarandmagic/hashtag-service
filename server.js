@@ -19,6 +19,7 @@ const connectionString = process.env.CONNECTION_STRING;
 
 const getFixtures = async () => {
   const endpoint = process.env.ENDPOINT;
+  console.log('>>>>>>', endpoint)
   const today = new Date().toISOString().split("T")[0];
   const target = `${endpoint}v1/EPG?date=${today}&country=de&languageCode=en&filters=Sport%3A289u5typ3vp4ifwh5thalohmq`;
 
