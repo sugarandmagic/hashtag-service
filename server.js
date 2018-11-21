@@ -119,6 +119,7 @@ const getHashtags = async ctx => {
       now: checkIfEventIsLive(item.start)
     }
   }));
+  ctx.set('Access-Control-Allow-Origin', '*')
   ctx.body = res;
   ctx.status = 200;
 };
@@ -126,6 +127,7 @@ const getHashtags = async ctx => {
 const getHashtagByEventId = async ctx => {
   const eventId = ctx.params.eventId;
   const one = await Hashtag.findOne({ eventId: eventId });
+  ctx.set('Access-Control-Allow-Origin', '*')
   ctx.body = {
     [eventId]: {
       title: one.title,
